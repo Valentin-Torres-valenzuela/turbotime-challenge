@@ -29,42 +29,17 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      let cats = await categoryService.getCategories();
-
-      const defaults = Object.values(CategoryType);
-      const existingNames = cats.map(c => c.name);
+      const cats = await categoryService.getCategories();
       
-      let createdAny = false;
-      for (const name of defaults) {
-        if (!existingNames.includes(name)) {
-          try {
-            await categoryService.createCategory({
-              name,
-              color: CATEGORY_COLORS[name] || "#CBD6B3",
-            });
-            createdAny = true;
-          } catch (err) {
-            // Silence errors
-          }
-        }
-      }
-
-      if (createdAny) {
-        cats = await categoryService.getCategories();
-      }
-
       const validCategoryNames = Object.values(CategoryType) as string[];
       const filteredCats = cats.filter(c => validCategoryNames.includes(c.name));
       setCategories(filteredCats);
       
-      // Default to All Categories (null)
-      if (filteredCats.length > 0 && selectedCategoryId === null) {
-        // We want to keep it null to show all categories
-        // setSelectedCategoryId(filteredCats[0].id);
-      }
-
       const fetchedNotes = await noteService.getNotes();
       setNotes(fetchedNotes);
+    } catch (err) {
+      console.error("Failed to fetch dashboard data", err);
+      setError("Failed to load your notes. Please try again.");
     } finally {
       setLoading(false);
     }
