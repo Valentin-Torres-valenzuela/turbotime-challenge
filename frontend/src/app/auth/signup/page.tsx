@@ -9,9 +9,9 @@ import Link from "next/link";
 import { authService } from "@/services/auth.service";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
+import ErrorMessage from "@/components/ErrorMessage";
 
 const signupSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -35,10 +35,24 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      await authService.register(data);
-      router.push("/auth/login");
+      // Use email as username for registration
+      await authService.register({
+        username: data.email,
+        email: data.email,
+        password: data.password
+      });
+      await authService.login({
+        username: data.email,
+        password: data.password
+      });
+      router.push("/");
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Something went wrong during registration");
+      const data = err.response?.data;
+      if (data?.username?.[0]?.includes("already exists") || data?.email?.[0]?.includes("already exists")) {
+        setError("This user might already be registered or the credentials provided are incorrect.");
+      } else {
+        setError(data?.detail || "Something went wrong during registration. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -46,43 +60,43 @@ export default function SignupPage() {
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-8 text-center">
-        {/* Placeholder for Cat Illustration */}
-        <div className="mx-auto h-32 w-32 bg-[#EFE7DB]/30 rounded-full flex items-center justify-center text-[#846E54] font-bold text-lg">
-          🐱
-        </div>
-        
-        <h1 className="text-5xl font-serif text-[#2D2D2D]">Yay, New Friend!</h1>
-        
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
-            {...register("username")}
-            placeholder="Username"
-            error={errors.username?.message}
-          />
-          <Input
-            {...register("email")}
-            type="email"
-            placeholder="Email address"
-            error={errors.email?.message}
-          />
-          <Input
-            {...register("password")}
-            type="password"
-            placeholder="Password"
-            error={errors.password?.message}
-          />
-          
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          
-          <Button type="submit" className="w-full" disabled={loading}>
+      <div className="w-[384px] flex flex-col items-center space-y-[40px] text-center">
+        <img
+          src="/assets/cat.png"
+          alt="Cat"
+          className="h-[120px] w-auto object-contain"
+        />
+        <h1 className="text-[48px] font-bold font-serif text-[#88642A] leading-[100%]">
+          Yay, New Friend!
+        </h1>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-[24px]">
+          <div className="space-y-[16px]">
+            <Input
+              variant="auth"
+              {...register("email")}
+              placeholder="Email address"
+              error={errors.email?.message}
+            />
+            <Input
+              variant="auth"
+              {...register("password")}
+              type="password"
+              placeholder="Password"
+              error={errors.password?.message}
+            />
+          </div>
+
+          <ErrorMessage message={error} />
+
+          <Button variant="auth" type="submit" disabled={loading}>
             {loading ? "Creating account..." : "Sign Up"}
           </Button>
         </form>
-        
-        <p className="text-sm text-[#846E54]">
-          <Link href="/auth/login" className="hover:underline">
-            We're already friends!
+
+        <p className="text-[12px] font-normal font-sans text-[#957139]">
+          <Link href="/auth/login" className="underline decoration-1 underline-offset-0">
+            We’re already friends!
           </Link>
         </p>
       </div>

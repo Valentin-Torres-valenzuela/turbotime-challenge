@@ -33,3 +33,29 @@ class APIViewTestCase(TestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Category.objects.count(), 2)
+
+    def test_filter_notes_by_category(self):
+        cat2 = Category.objects.create(name='Work', color='#FEE29C', user=self.user)
+        Note.objects.create(title='P Note', content='c', category=self.category, user=self.user)
+        Note.objects.create(title='W Note', content='c', category=cat2, user=self.user)
+        
+        url = reverse('note-list')
+        response = self.client.get(url, {'category': self.category.id}, format='json')
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], 'P Note')
+
+    def test_auth_registration(self):
+        self.client.force_authenticate(user=None)
+        url = reverse('auth_register')
+        data = {'username': 'newuser', 'password': 'newpassword', 'email': 'new@test.com'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+
+    def test_auth_login(self):
+        self.client.force_authenticate(user=None)
+        url = reverse('token_obtain_pair')
+        data = {'username': 'testuser', 'password': 'testpassword'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)

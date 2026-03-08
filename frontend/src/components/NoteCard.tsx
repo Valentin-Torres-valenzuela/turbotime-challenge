@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { isToday, isYesterday, format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface NoteCardProps {
@@ -21,24 +21,60 @@ export default function NoteCard({
   className,
 }: NoteCardProps) {
   const date = new Date(updatedAt);
-  const formattedDate = format(date, "MMMM d");
+  
+  let formattedDate = "";
+  if (isToday(date)) {
+    formattedDate = "today";
+  } else if (isYesterday(date)) {
+    formattedDate = "yesterday";
+  } else {
+    formattedDate = format(date, "MMMM d");
+  }
+
+  const isDraft = !title.trim() && !content.trim();
+  
+  const displayTitle = isDraft ? "Draft" : title;
+  const displayContent = isDraft 
+    ? "This draft will be deleted in 7 days." 
+    : content.length > 350 
+      ? content.substring(0, 350) + "..." 
+      : content;
 
   return (
     <div
-      style={{ backgroundColor: color }}
+      style={{ 
+        backgroundColor: color,
+        borderColor: color
+      }}
       className={cn(
-        "group relative flex flex-col h-fit min-h-[220px] rounded-3xl p-6 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer",
+        "group relative flex flex-col w-full h-[246px] rounded-[11px] p-[16px] gap-[12px] border-[3px] shadow-[1px_1px_2px_0px_#00000040] transition-transform hover:-translate-y-1 cursor-pointer overflow-hidden",
         className
       )}
     >
-      <div className="mb-4 flex items-center justify-between text-xs font-semibold opacity-70 uppercase tracking-wider">
-        <span>{formattedDate} {categoryName}</span>
+      {/* Header: Date and Category */}
+      <div className="flex items-center gap-2 leading-[100%] h-[12px]">
+        <span className="text-[12px] font-bold font-sans text-black">
+          {formattedDate}
+        </span>
+        <span className="text-[12px] font-normal font-sans text-black">
+          {categoryName}
+        </span>
       </div>
-      <h3 className="mb-2 text-2xl font-bold leading-tight text-[#2D2D2D] font-serif">
-        {title}
+
+      {/* Title */}
+      <h3 className={cn(
+        "text-[24px] font-bold font-serif text-black leading-[100%] line-clamp-2",
+        isDraft && "italic opacity-60"
+      )}>
+        {displayTitle}
       </h3>
-      <p className="text-sm leading-relaxed text-[#2D2D2D]/80 line-clamp-6">
-        {content}
+
+      {/* Description */}
+      <p className={cn(
+        "text-[12px] font-normal font-sans text-black leading-[100%] line-clamp-[10]",
+        isDraft && "italic opacity-50"
+      )}>
+        {displayContent}
       </p>
     </div>
   );

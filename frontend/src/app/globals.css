@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #846E54;
-  --color-background: #FDF7F0;
+  --color-primary: #957139;
+  --color-background: #FAF1E3;
   --color-card-teal: #8EB6AD;
   --color-card-yellow: #FEE29C;
   --color-card-orange: #F8B182;
   --color-card-green: #CBD6B3;
   --color-button-bg: #EFE7DB;
   
-  --font-serif: "DM Serif Display", serif;
-  --font-sans: "Outfit", sans-serif;
+  --font-serif: "Inria Serif", serif;
+  --font-sans: "Inter", sans-serif;
 }
 
 :root {
-  --background: #FDF7F0;
+  --background: #FAF1E3;
   --foreground: #2D2D2D;
 }
 

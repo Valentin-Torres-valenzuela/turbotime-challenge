@@ -1,15 +1,15 @@
 export enum CategoryType {
-  PERSONAL = "Personal",
-  SCHOOL = "School",
   RANDOM_THOUGHTS = "Random Thoughts",
+  SCHOOL = "School",
+  PERSONAL = "Personal",
   DRAMA = "Drama",
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  [CategoryType.PERSONAL]: "#8EB6AD",
-  [CategoryType.SCHOOL]: "#FEE29C",
-  [CategoryType.RANDOM_THOUGHTS]: "#F8B182",
-  [CategoryType.DRAMA]: "#CBD6B3",
+  [CategoryType.RANDOM_THOUGHTS]: "#EF9C66",
+  [CategoryType.SCHOOL]: "#FCDC94",
+  [CategoryType.PERSONAL]: "#78ABA8",
+  [CategoryType.DRAMA]: "#C8CFA0",
 };
 
 export const DEFAULT_BG_COLOR = "#FDF7F0";

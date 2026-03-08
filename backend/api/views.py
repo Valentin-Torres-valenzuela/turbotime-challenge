@@ -17,7 +17,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Category.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        from django.db import IntegrityError
+        from rest_framework.exceptions import ValidationError
+        try:
+            serializer.save(user=self.request.user)
+        except IntegrityError:
+            raise ValidationError({"detail": "Category with this name already exists for this user."})
 
 class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer

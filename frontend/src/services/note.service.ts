@@ -17,6 +17,10 @@ export const noteService = {
     const response = await api.get<Note[]>("notes/", { params });
     return response.data;
   },
+  async getNoteById(id: number) {
+    const response = await api.get<Note>(`notes/${id}/`);
+    return response.data;
+  },
   async createNote(data: Partial<Note>) {
     const response = await api.post<Note>("notes/", data);
     return response.data;

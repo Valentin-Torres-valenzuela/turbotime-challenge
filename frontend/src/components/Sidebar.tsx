@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Category } from "@/services/category.service";
 import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react";
 
 interface SidebarProps {
   categories: Category[];
@@ -14,43 +16,75 @@ export default function Sidebar({
   selectedCategoryId,
   onSelectCategory,
 }: SidebarProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="w-64 flex flex-col h-full bg-[#FDF7F0] p-8 border-r border-[#846E54]/10">
-      <h2 className="text-sm font-bold text-[#2D2D2D]/60 uppercase tracking-widest mb-6">
-        All Categories
-      </h2>
-      <nav className="space-y-4">
-        <button
-          onClick={() => onSelectCategory(null)}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-2 rounded-full transition-all text-sm font-semibold",
-            selectedCategoryId === null
-              ? "bg-[#EFE7DB] text-[#2D2D2D]"
-              : "text-[#2D2D2D]/60 hover:bg-[#EFE7DB]/50"
-          )}
-        >
-          <div className="w-3 h-3 rounded-full bg-[#2D2D2D]/20" />
-          All Notes
-        </button>
-        {categories.map((category) => (
+    <>
+      {/* Mobile Toggle Button */}
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="lg:hidden fixed top-[39px] left-[20px] z-[60] p-2 bg-[#FAF1E3] border border-[#957139] rounded-md text-[#957139] shadow-sm hover:bg-black/5"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-[70] transition-opacity"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <div 
+        className={cn(
+          "fixed top-0 lg:top-[101px] left-0 lg:left-[23px] w-[256px] h-full lg:h-auto bg-[#FAF1E3] lg:bg-transparent z-[80] lg:z-10 transition-transform duration-300 transform",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "p-6 lg:p-0 border-r border-[#957139]/20 lg:border-0"
+        )}
+      >
+        <div className="flex items-center justify-between mb-8 lg:hidden">
+           <h2 className="font-sans font-bold text-[16px] text-black">Categories</h2>
+           <button onClick={() => setIsOpen(false)} className="text-[#957139]">
+              <X className="w-6 h-6" />
+           </button>
+        </div>
+
+        <nav className="flex flex-col space-y-1">
           <button
-            key={category.id}
-            onClick={() => onSelectCategory(category.id)}
+            onClick={() => {
+              onSelectCategory(null);
+              setIsOpen(false);
+            }}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-2 rounded-full transition-all text-sm font-semibold",
-              selectedCategoryId === category.id
-                ? "bg-[#EFE7DB] text-[#2D2D2D]"
-                : "text-[#2D2D2D]/60 hover:bg-[#EFE7DB]/50"
+              "flex items-center gap-3 px-4 py-1.5 transition-all text-[12px] font-bold font-sans leading-[100%] cursor-pointer text-left uppercase tracking-normal",
+              selectedCategoryId === null ? "text-black" : "text-black/60 hover:text-black"
             )}
           >
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: category.color }}
-            />
-            {category.name}
+            All Categories
           </button>
-        ))}
-      </nav>
-    </div>
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => {
+                onSelectCategory(category.id);
+                setIsOpen(false);
+              }}
+              className={cn(
+                "flex items-center gap-3 px-4 py-1.5 transition-all text-[12px] font-normal font-sans leading-[100%] cursor-pointer text-left",
+                selectedCategoryId === category.id ? "text-black" : "text-black/60 hover:text-black"
+              )}
+            >
+              <div
+                className="w-[11px] h-[11px] rounded-full shrink-0"
+                style={{ backgroundColor: category.color }}
+              />
+              {category.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </>
   );
 }

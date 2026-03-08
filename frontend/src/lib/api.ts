@@ -16,4 +16,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        // Redirect if not already on a login page
+        if (!window.location.pathname.includes("/auth/login")) {
+          window.location.href = "/auth/login";
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

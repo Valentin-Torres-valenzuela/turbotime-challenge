@@ -9,17 +9,15 @@ import { CategoryType, CATEGORY_COLORS } from "@/lib/constants";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import NoteCard from "@/components/NoteCard";
-import NoteModal from "@/components/NoteModal";
+import ErrorMessage from "@/components/ErrorMessage";
 
 export default function Dashboard() {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -32,41 +30,43 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       let cats = await categoryService.getCategories();
+
+      const defaults = Object.values(CategoryType);
+      const existingNames = cats.map(c => c.name);
       
-      // Seed default categories if none exist
-      if (cats.length === 0) {
-        const defaults = Object.values(CategoryType);
-        for (const name of defaults) {
-          await categoryService.createCategory({
-            name,
-            color: CATEGORY_COLORS[name] || "#CBD6B3",
-          });
+      let createdAny = false;
+      for (const name of defaults) {
+        if (!existingNames.includes(name)) {
+          try {
+            await categoryService.createCategory({
+              name,
+              color: CATEGORY_COLORS[name] || "#CBD6B3",
+            });
+            createdAny = true;
+          } catch (err) {
+            // Silence errors
+          }
         }
+      }
+
+      if (createdAny) {
         cats = await categoryService.getCategories();
       }
+
+      const validCategoryNames = Object.values(CategoryType) as string[];
+      const filteredCats = cats.filter(c => validCategoryNames.includes(c.name));
+      setCategories(filteredCats);
       
-      setCategories(cats);
+      // Default to All Categories (null)
+      if (filteredCats.length > 0 && selectedCategoryId === null) {
+        // We want to keep it null to show all categories
+        // setSelectedCategoryId(filteredCats[0].id);
+      }
+
       const fetchedNotes = await noteService.getNotes();
       setNotes(fetchedNotes);
-    } catch (err) {
-      console.error("Failed to fetch data", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSaveNote = async (data: Partial<Note>) => {
-    try {
-      if (editingNote) {
-        await noteService.updateNote(editingNote.id, data);
-      } else {
-        await noteService.createNote(data);
-      }
-      const fetchedNotes = await noteService.getNotes();
-      setNotes(fetchedNotes);
-      setEditingNote(null);
-    } catch (err) {
-      console.error("Failed to save note", err);
     }
   };
 
@@ -80,57 +80,50 @@ export default function Dashboard() {
   };
 
   const filteredNotes = notes.filter((note) => {
-    const matchesCategory =
-      selectedCategoryId === null || note.category === selectedCategoryId;
-    const matchesSearch =
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return selectedCategoryId === null || note.category === selectedCategoryId;
   });
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#FDF7F0]">
+      <div className="flex h-screen items-center justify-center bg-[#FAF1E3]">
         <p className="text-[#846E54] font-semibold animate-pulse">Loading your charm...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#FDF7F0] overflow-hidden">
+    <div className="flex h-screen w-full bg-[#FAF1E3] overflow-hidden">
       <Sidebar
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
       />
-      
-      <main className="flex-1 flex flex-col h-full overflow-hidden">
+
+      <main className="flex-1 flex flex-col h-full overflow-hidden lg:ml-[256px]">
         <TopBar
-          onNewNote={() => {
-            setEditingNote(null);
-            setIsModalOpen(true);
-          }}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onNewNote={() => router.push("/note-page")}
         />
-        
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+
+        <div className="px-4 md:px-10 pb-4 text-black">
+          <ErrorMessage message={error} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 md:px-10 pb-10 scrollbar-hide">
           {filteredNotes.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-center space-y-6">
-              <div className="h-48 w-48 bg-[#EFE7DB]/30 rounded-full flex items-center justify-center text-5xl">
-                🧋
-              </div>
-              <p className="text-[#846E54] text-xl font-medium max-w-xs">
+            <div className="flex h-full flex-col items-center justify-center text-center space-y-8">
+              <img
+                src="/assets/coffee.png"
+                alt="Coffee"
+                className="h-[150px] md:h-[200px] w-auto object-contain"
+              />
+              <p className="text-[#88642A] text-[20px] md:text-[24px] font-normal font-sans leading-[100%] max-w-sm">
                 I'm just here waiting for your charming notes...
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-[1650px]:grid-cols-4 gap-[10px]">
               {filteredNotes.map((note) => (
-                <div key={note.id} onClick={() => {
-                  setEditingNote(note);
-                  setIsModalOpen(true);
-                }}>
+                <div key={note.id} onClick={() => router.push(`/note-page?id=${note.id}`)} className="cursor-pointer w-full">
                   <NoteCard
                     title={note.title}
                     content={note.content}
@@ -145,13 +138,6 @@ export default function Dashboard() {
         </div>
       </main>
 
-      <NoteModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveNote}
-        categories={categories}
-        initialData={editingNote}
-      />
     </div>
   );
 }
