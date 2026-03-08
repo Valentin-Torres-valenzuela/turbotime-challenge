@@ -90,3 +90,12 @@ cd backend
 - **Serif Font**: DM Serif Display
 - **Sans-Serif Font**: Outfit
 - **Category Colors**: Teal (#8EB6AD), Yellow (#FEE29C), Orange (#F8B182), Green (#CBD6B3).
+
+## 🤖 How I used AI in this project
+
+I leveraged AI as a high-velocity collaborator to focus on architecture and pixel-perfect implementation rather than boilerplate.
+
+* **Brainstorming & Architecture:** Used **Gemini** to validate the ERD (Entity Relationship Diagram) and ensure the Django-Next.js communication followed REST best practices.
+* **Schema & Seeders:** Automated the generation of complex **Zod schemas** and Python data seeders to populate the development environment with realistic notes and categories instantly.
+* **Efficiency with "Antigravity":** Utilized AI-assisted coding tools to handle repetitive styling patterns in Tailwind CSS and generate component boilerplates, allowing more time for custom Framer Motion animations.
+* **Strict Self-Correction:** Every AI-generated snippet was cross-referenced with **official documentation**  to avoid "God Functions," ensuring the use of custom hooks and keeping the logic decoupled and testable.
