@@ -3,8 +3,12 @@ from django.contrib.auth.models import User
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    color = models.CharField(max_length=7)  # Hex code
+    color = models.CharField(max_length=7)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+        unique_together = ['user', 'name']
 
     def __str__(self):
         return self.name
@@ -12,10 +16,13 @@ class Category(models.Model):
 class Note(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='notes')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='notes')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
 
     def __str__(self):
         return self.title
